@@ -1,98 +1,118 @@
 import express from "express";
 import mongoose from "mongoose";
 import { PORT } from "./config.js";
-import { Book } from "./models/bookModel.js";
+import { Lead } from "./models/leadModel.js";
 import dotenv from "dotenv";
+import cors from "cors";
+
 dotenv.config();
 const mongoDBURL = process.env.mongoDBURL;
+
 const app = express();
+
+//middleware
 app.use(express.json());
+app.use(cors());
+
 app.get("/", (req, res) => {
   return res.status(200).send("welcome");
 });
 
-//route for save a book
-
-app.post("/books", async (req, res) => {
+// -------------------------------
+// CREATE a Lead
+// -------------------------------
+app.post("/leads", async (req, res) => {
   try {
-    if (!req.body.title || !req.body.author || !req.body.publishedYear) {
-      res.status(400).send({ message: "send all required fields" });
+    if (!req.body.name || !req.body.email) {
+      res.status(400).send({ message: "send required fields" });
     }
-    const newBook = {
-      title: req.body.title,
-      author: req.body.author,
-      publishedYear: req.body.publishedYear,
+
+    const newLead = {
+      name: req.body.name,
+      email: req.body.email,
+      company: req.body.company,
+      budget: req.body.budget,
+      status: req.body.status,
     };
 
-    const book = await Book.create(newBook);
-    res.status(201).send(book);
+    const lead = await Lead.create(newLead);
+    res.status(201).send(lead);
   } catch (error) {
     console.log(error.message);
     res.status(500).send({ message: error.message });
   }
 });
 
-//route to get all books
-app.get("/books", async (req, res) => {
+// -------------------------------
+// GET all leads
+// -------------------------------
+app.get("/leads", async (req, res) => {
   try {
-    const books = await Book.find({});
-    res.status(200).json({ count: books.length, data: books });
+    const leads = await Lead.find({});
+    res.status(200).json({ count: leads.length, data: leads });
   } catch (error) {
     console.log(error.message);
     res.status(500).send({ message: error.message });
   }
 });
 
-//route to get book from id
-app.get("/books/:id", async (req, res) => {
+// -------------------------------
+// GET lead by ID
+// -------------------------------
+app.get("/leads/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const book = await Book.findById(id);
-    res.status(200).json(book);
+    const lead = await Lead.findById(id);
+    res.status(200).json(lead);
   } catch (error) {
     console.log(error.message);
     res.status(500).send({ message: error.message });
   }
 });
 
-//update a book
-
-app.put("/books/:id", async (req, res) => {
+// -------------------------------
+// UPDATE lead
+// -------------------------------
+app.put("/leads/:id", async (req, res) => {
   try {
-    //input validation
-    if (!req.body.title || !req.body.author || !req.body.publishedYear) {
-      res.status(400).send({ message: "send all required fields" });
+    if (!req.body.name || !req.body.email) {
+      res.status(400).send({ message: "send required fields" });
     }
 
     const { id } = req.params;
-    //update book by id
-    const result = await Book.findByIdAndUpdate(id, req.body);
+    const result = await Lead.findByIdAndUpdate(id, req.body);
+
     if (!result) {
-      return res.status(404).json({ message: "book not found" });
+      return res.status(404).json({ message: "lead not found" });
     }
-    return res.status(200).send({ message: "book updated successfully" });
+
+    return res.status(200).send({ message: "lead updated successfully" });
   } catch (error) {
     console.log(error.message);
     res.status(500).send({ message: error.message });
   }
 });
 
-//delete book by id
-
-app.delete("/books/:id", async (req, res) => {
+// -------------------------------
+// DELETE lead
+// -------------------------------
+app.delete("/leads/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    //delete book by id
-    const result = await Book.findByIdAndDelete(id);
+
+    const result = await Lead.findByIdAndDelete(id);
+
     if (!result) {
-      return res.status(404).json({ message: "book not found" });
+      return res.status(404).json({ message: "lead not found" });
     }
-    return res.status(200).send({ message: "book deleted successfully" });
+
+    return res.status(200).send({ message: "lead deleted successfully" });
   } catch (error) {
     console.log(error.message);
     res.status(500).send({ message: error.message });
   }
 });
+
 mongoose
   .connect(mongoDBURL)
   .then(() => {
